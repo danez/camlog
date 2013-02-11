@@ -44,9 +44,7 @@ public class TypeDialogFragment extends DialogFragment
         builder.setItems(R.array.entry_types, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which)
             {
-                if (listener != null) {
-                    listener.onDialogClick(dialog, which);
-                }
+                listener.onDialogClick(dialog, which);
             }
         });
         return builder.create();
