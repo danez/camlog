@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="entry_types">
+        <item>@string/dialog_choose_type_private</item>
+        <item>@string/dialog_choose_type_business</item>
+        <item>@string/dialog_choose_type_work</item>
+    </string-array>
+
+</resources>
