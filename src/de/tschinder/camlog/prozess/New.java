@@ -5,10 +5,10 @@ import java.util.List;
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.net.Uri;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,14 +20,15 @@ import de.tschinder.camlog.data.LogEntryType;
 import de.tschinder.camlog.database.dao.MessageDataSource;
 import de.tschinder.camlog.database.object.LogEntry;
 import de.tschinder.camlog.database.object.Message;
+import de.tschinder.camlog.dialog.TypeDialogFragment;
 
 public class New
 {
 
     private LogEntry logEntry;
-    private Context context;
+    private FragmentActivity context;
 
-    public New(Context context)
+    public New(FragmentActivity context)
     {
         this.context = context;
     }
@@ -47,27 +48,20 @@ public class New
 
     protected void showDialogTypes()
     {
-        Builder builder = new Builder(context);
+        TypeDialogFragment.show(context, new TypeDialogFragment.TypeDialogListener() {
 
-        builder.setTitle(R.string.dialog_choose_type);
-        builder.setItems(R.array.entry_types, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which)
+            @Override
+            public void onDialogClick(DialogInterface dialog, int which)
             {
-                processResultDialogTypes(dialog, which);
+                try {
+                    logEntry.setType(LogEntryType.byOrdinal(which));
+                    showDialogMessage();
+
+                } catch (IllegalArgumentException e) {
+                    Toast.makeText(context, "ERROR: Wrong type choosen.", Toast.LENGTH_LONG).show();
+                }
             }
         });
-        builder.show();
-    }
-
-    protected void processResultDialogTypes(DialogInterface dialog, int which)
-    {
-        try {
-            logEntry.setType(LogEntryType.byOrdinal(which));
-            showDialogMessage();
-
-        } catch (IllegalArgumentException e) {
-            Toast.makeText(context, "ERROR: Wrong type choosen.", Toast.LENGTH_LONG).show();
-        }
     }
 
     protected void showDialogMessage()
