@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="@string/dialog_new_message_text_hint"
-        android:inputType="textNoSuggestions" >
+        android:inputType="text|textAutoCorrect" >
         
         <requestFocus />
     </EditText>
