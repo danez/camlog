@@ -21,6 +21,8 @@ public class StartFragment extends Fragment
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 42;
 
     private Uri fileUri;
+    
+    private static New newObject;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -67,13 +69,51 @@ public class StartFragment extends Fragment
                 } else {
                     file = fileUri;
                 }
-                new New(getActivity()).start(file);
+                newObject = new New(getActivity());
+                newObject.start(file);
             } else if (resultCode == Activity.RESULT_CANCELED) {
                 // no-op
             } else {
                 Toast.makeText(getActivity(), "Error", Toast.LENGTH_LONG).show();
             }
         }
-    }    
+    }
+    
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (outState.isEmpty()) {
+            outState.putBoolean("bug:fix", true);
+        }
+    }
+
+    @Override
+    public void onAttach(Activity activity)
+    {
+        super.onAttach(activity);
+        if(newObject != null) {
+            newObject.setActivity(getActivity());
+        }
+    }
+
+    @Override
+    public void onPause()
+    {
+        if(newObject != null) {
+            newObject.setActivity(null);
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        if(newObject != null) {
+            newObject.setActivity(getActivity());
+        }
+    }
+    
+    
 
 }

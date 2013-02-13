@@ -9,8 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="@string/dialog_message_text_hint"
-        android:inputType="text" >
+        android:hint="@string/dialog_new_message_text_hint"
+        android:inputType="textNoSuggestions" >
         
         <requestFocus />
     </EditText>

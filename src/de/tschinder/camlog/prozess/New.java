@@ -2,31 +2,26 @@ package de.tschinder.camlog.prozess;
 
 import java.util.List;
 
-import android.app.Activity;
-import android.app.AlertDialog.Builder;
-import android.app.Dialog;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
-import de.tschinder.camlog.R;
-import de.tschinder.camlog.activities.MainActivity;
 import de.tschinder.camlog.data.LogEntryType;
 import de.tschinder.camlog.database.dao.MessageDataSource;
 import de.tschinder.camlog.database.object.LogEntry;
 import de.tschinder.camlog.database.object.Message;
+import de.tschinder.camlog.dialog.MessageDialogFragment;
+import de.tschinder.camlog.dialog.NewMessageDialogFragment;
 import de.tschinder.camlog.dialog.TypeDialogFragment;
 
-public class New
+public class New implements TypeDialogFragment.TypeDialogListener, MessageDialogFragment.MessageDialogListener,
+        NewMessageDialogFragment.NewMessageDialogListener
 {
 
     private LogEntry logEntry;
     private FragmentActivity context;
+
+    private String dialogQueue;
 
     public New(FragmentActivity context)
     {
@@ -46,92 +41,97 @@ public class New
 
     }
 
+    public void setActivity(FragmentActivity context)
+    {
+        this.context = context;
+        resumeDialog();
+    }
+
+    private void resumeDialog()
+    {
+        if (dialogQueue == "type") {
+            showDialogTypes();
+        } else if (dialogQueue == "message") {
+            showDialogMessage();
+        } else if (dialogQueue == "newtrue") {
+            showDialogNewMessage(true);
+        } else if (dialogQueue == "newfalse") {
+            showDialogNewMessage(false);
+        }
+
+    }
+
     protected void showDialogTypes()
     {
-        TypeDialogFragment.show(context, new TypeDialogFragment.TypeDialogListener() {
+        if (context == null) {
+            dialogQueue = "type";
+        } else {
+            TypeDialogFragment.show(context, this);
+        }
+    }
 
-            @Override
-            public void onDialogClick(DialogInterface dialog, int which)
-            {
-                try {
-                    logEntry.setType(LogEntryType.byOrdinal(which));
-                    showDialogMessage();
+    @Override
+    public void onTypeDialogClick(DialogInterface dialog, int which)
+    {
+        try {
+            logEntry.setType(LogEntryType.byOrdinal(which));
+            showDialogMessage();
 
-                } catch (IllegalArgumentException e) {
-                    Toast.makeText(context, "ERROR: Wrong type choosen.", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+        } catch (IllegalArgumentException e) {
+            Toast.makeText(context, "ERROR: Wrong type choosen.", Toast.LENGTH_LONG).show();
+        }
     }
 
     protected void showDialogMessage()
     {
-        MessageDataSource dataSource = new MessageDataSource(context);
-        List<Message> messages = dataSource.getAllMessagesByTypeOrderByCount(logEntry.getType());
-        if (messages.size() > 0) {
-            createDialogMessage(messages).show();
+        if (context == null) {
+            dialogQueue = "message";
         } else {
-            createDialogNewMessage(false).show();
+            MessageDataSource dataSource = new MessageDataSource(context);
+            List<Message> messages = dataSource.getAllMessagesByTypeOrderByCount(logEntry.getType());
+            if (messages.size() > 0) {
+                MessageDialogFragment.show(context, this, messages);
+            } else {
+                showDialogNewMessage(false);
+            }
         }
 
     }
 
-    protected Dialog createDialogMessage(List<Message> messages)
+    @Override
+    public void onMessageDialogClick(DialogInterface dialog, int which)
     {
-        Builder builder = new Builder(context);
+        // TODO Auto-generated method stub
 
-        ArrayAdapter<Message> adapter = new ArrayAdapter<Message>(context, android.R.layout.simple_list_item_1,
-                messages);
-
-        builder.setAdapter(adapter, new OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                Log.d(MainActivity.APP_TAG, "yes choosen " + which);
-
-            }
-        }).setNeutralButton("create new message", new OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int id)
-            {
-                Log.d(MainActivity.APP_TAG, "new choosen " + id);
-                createDialogNewMessage(true);
-            }
-        });
-
-        return builder.create();
     }
 
-    protected Dialog createDialogNewMessage(boolean abortPossible)
+    @Override
+    public void onMessageDialogClickNewMessage(DialogInterface dialog, int id)
     {
-        LayoutInflater inflater = ((Activity) context).getLayoutInflater();
-        Builder builder = new Builder(context);
-        View view = inflater.inflate(R.layout.dialog_new_message, null);
+        showDialogNewMessage(true);
+    }
 
-        builder.setView(view);
-        builder.setPositiveButton("create", new OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                Log.d(MainActivity.APP_TAG, "create new choosen " + which);
-            }
-        });
-
-        if (abortPossible) {
-            builder.setNegativeButton("abort", new OnClickListener() {
-
-                @Override
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    Log.d(MainActivity.APP_TAG, "no choosen " + which);
-                    dialog.cancel();
-                }
-            });
+    protected void showDialogNewMessage(boolean abortPossible)
+    {
+        if (context == null) {
+            dialogQueue = "new" + abortPossible;
+        } else {
+            NewMessageDialogFragment.show(context, this, abortPossible);
         }
 
-        return builder.create();
     }
+
+    @Override
+    public void onNewMessageDialogCreate(DialogInterface dialog, int id, String message)
+    {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+
+    }
+
+    @Override
+    public void onNewMessageDialogAbort(DialogInterface dialog, int id)
+    {
+        // TODO Auto-generated method stub
+    }
+
 }

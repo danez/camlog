@@ -6,13 +6,14 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import de.tschinder.camlog.R;
 
 public class TypeDialogFragment extends DialogFragment
 {
     public interface TypeDialogListener
     {
-        public void onDialogClick(DialogInterface dialog, int which);
+        public void onTypeDialogClick(DialogInterface dialog, int which);
     }
 
     protected static TypeDialogListener listener;
@@ -40,13 +41,25 @@ public class TypeDialogFragment extends DialogFragment
         // Build the dialog and set up the button click handlers
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-        builder.setTitle(R.string.dialog_choose_type);
+        builder.setTitle(R.string.dialog_choose_type_title);
         builder.setItems(R.array.entry_types, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which)
             {
-                listener.onDialogClick(dialog, which);
+                listener.onTypeDialogClick(dialog, which);
             }
         });
         return builder.create();
+    }
+    
+    @Override
+    public int show(FragmentTransaction transaction, String tag) {
+        return show(transaction, tag, false);
+    }
+
+    public int show(FragmentTransaction transaction, String tag, boolean allowStateLoss) {
+        transaction.add(this, tag);
+        int mBackStackId;
+        mBackStackId = allowStateLoss ? transaction.commitAllowingStateLoss() : transaction.commit();
+        return mBackStackId;
     }
 }
