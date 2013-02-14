@@ -6,38 +6,27 @@ import java.util.List;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import de.tschinder.camlog.activities.MainActivity;
 import de.tschinder.camlog.data.LogEntryType;
-import de.tschinder.camlog.database.helper.MessageHelper;
+import de.tschinder.camlog.database.Helper;
 import de.tschinder.camlog.database.object.Message;
+import de.tschinder.camlog.database.table.MessageTable;
 
 public class MessageDataSource
 {
 
-    // Database fields
-    private SQLiteDatabase database;
-    private MessageHelper dbHelper;
+    private Helper dbHelper;
     private Context context;
-    private boolean isOpen = false;
     private String[] allColumns = {
-            MessageHelper.COLUMN_ID, MessageHelper.COLUMN_TYPE, MessageHelper.COLUMN_VALUE, MessageHelper.COLUMN_COUNT
+            MessageTable.COLUMN_ID, MessageTable.COLUMN_TYPE, MessageTable.COLUMN_VALUE, MessageTable.COLUMN_COUNT
     };
 
     public MessageDataSource(Context context)
     {
-        dbHelper = new MessageHelper(context);
+        dbHelper = Helper.getInstance(context);
         this.context = context;
-    }
-
-    public synchronized void open() throws SQLException
-    {
-        if (!isOpen) {
-            database = dbHelper.getWritableDatabase();
-            isOpen = true;
-        }
     }
 
     public void close()
@@ -45,15 +34,17 @@ public class MessageDataSource
         dbHelper.close();
     }
 
-    public Message createMessage(String value, LogEntryType type)
+    public synchronized Message createMessage(String value, LogEntryType type)
     {
-        open();
+        
         ContentValues values = new ContentValues();
-        values.put(MessageHelper.COLUMN_TYPE, type.ordinal());
-        values.put(MessageHelper.COLUMN_VALUE, value);
-        values.put(MessageHelper.COLUMN_COUNT, 1);
-        long insertId = database.insert(MessageHelper.TABLE_NAME, null, values);
-
+        values.put(MessageTable.COLUMN_TYPE, type.ordinal());
+        values.put(MessageTable.COLUMN_VALUE, value);
+        values.put(MessageTable.COLUMN_COUNT, 1);
+        
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        long insertId = database.insert(MessageTable.TABLE_NAME, null, values);
+        
         return findById(insertId);
     }
 
@@ -68,13 +59,13 @@ public class MessageDataSource
 
     public Message findByValueAndType(String value, LogEntryType type)
     {
-        open();
-        Cursor cursor = database.query(MessageHelper.TABLE_NAME, allColumns, MessageHelper.COLUMN_VALUE + " = " + value
-                + "AND " + MessageHelper.COLUMN_TYPE + "=" + type.ordinal(), null, null, null, null);
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        Cursor cursor = database.query(MessageTable.TABLE_NAME, allColumns, MessageTable.COLUMN_VALUE + " = " + value
+                + "AND " + MessageTable.COLUMN_TYPE + "=" + type.ordinal(), null, null, null, null);
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             Message message = cursorToComment(cursor);
-            cursor.close();
+            
             return message;
         }
         return null;
@@ -82,40 +73,46 @@ public class MessageDataSource
 
     public Message findById(long id)
     {
-        open();
-        Cursor cursor = database.query(MessageHelper.TABLE_NAME, allColumns, MessageHelper.COLUMN_ID + " = " + id,
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        Cursor cursor = database.query(MessageTable.TABLE_NAME, allColumns, MessageTable.COLUMN_ID + " = " + id,
                 null, null, null, null);
         cursor.moveToFirst();
         Message message = cursorToComment(cursor);
         cursor.close();
+        
         return message;
     }
 
-    public boolean deleteMessage(Message message)
+    public synchronized boolean deleteMessage(Message message)
     {
-        open();
         long id = message.getId();
         Log.i(MainActivity.APP_TAG, "Delete message with id: " + id);
-        int affectedRows = database.delete(MessageHelper.TABLE_NAME, MessageHelper.COLUMN_ID + " = " + id, null);
+        
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        int affectedRows = database.delete(MessageTable.TABLE_NAME, MessageTable.COLUMN_ID + " = " + id, null);
+        
+        
         return affectedRows == 1;
     }
 
     public List<Message> getAllMessages()
     {
-        open();
-        Cursor cursor = database.query(MessageHelper.TABLE_NAME, allColumns, null, null, null, null, null);
-
-        return cursorToList(cursor);
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        Cursor cursor = database.query(MessageTable.TABLE_NAME, allColumns, null, null, null, null, null);
+        List<Message> messages = cursorToList(cursor);
+        
+        return messages;
     }
 
     public List<Message> getAllMessagesByTypeOrderByCount(LogEntryType type)
     {
-        open();
-        Cursor cursor = database.query(MessageHelper.TABLE_NAME, allColumns,
-                MessageHelper.COLUMN_TYPE + "=" + type.ordinal(), null, null, null, MessageHelper.COLUMN_COUNT
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        Cursor cursor = database.query(MessageTable.TABLE_NAME, allColumns,
+                MessageTable.COLUMN_TYPE + "=" + type.ordinal(), null, null, null, MessageTable.COLUMN_COUNT
                         + " DESC");
-
-        return cursorToList(cursor);
+        List<Message> messages = cursorToList(cursor);
+        
+        return messages;
     }
 
     private List<Message> cursorToList(Cursor cursor)
@@ -144,19 +141,21 @@ public class MessageDataSource
         return message;
     }
 
-    public void save(Message message)
+    public synchronized void save(Message message)
     {
-        open();
         ContentValues values = new ContentValues();
 
-        values.put(MessageHelper.COLUMN_TYPE, message.getType().ordinal());
-        values.put(MessageHelper.COLUMN_VALUE, message.getValue());
-        values.put(MessageHelper.COLUMN_COUNT, message.getCount());
+        values.put(MessageTable.COLUMN_TYPE, message.getType().ordinal());
+        values.put(MessageTable.COLUMN_VALUE, message.getValue());
+        values.put(MessageTable.COLUMN_COUNT, message.getCount());
+        
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
         if (message.getId() != 0) {
-            database.update(MessageHelper.TABLE_NAME, values, MessageHelper.COLUMN_ID + " = " + message.getId(), null);
+            database.update(MessageTable.TABLE_NAME, values, MessageTable.COLUMN_ID + " = " + message.getId(), null);
         } else {
-            database.insert(MessageHelper.TABLE_NAME, null, values);
+            long newId = database.insert(MessageTable.TABLE_NAME, null, values);
+            message.setId(newId);
         }
-
+        
     }
 }

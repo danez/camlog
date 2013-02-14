@@ -49,11 +49,20 @@ public class Message extends Abstract
     {
         this.count = count;
     }
+    
+    /**
+     * 
+     * @return the actual count after increment
+     */
+    public int incrementCount()
+    {
+        return ++count;
+    }
 
     @Override
     public String toString()
     {
-        return value;
+        return value + " (" + count + ")";
     }
 
     public void save()

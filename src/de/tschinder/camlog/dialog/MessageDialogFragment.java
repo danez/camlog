@@ -9,9 +9,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.widget.ArrayAdapter;
-import de.tschinder.camlog.activities.MainActivity;
 import de.tschinder.camlog.database.object.Message;
 
 public class MessageDialogFragment extends DialogFragment
@@ -21,6 +19,8 @@ public class MessageDialogFragment extends DialogFragment
         public void onMessageDialogClick(DialogInterface dialog, int which);
 
         public void onMessageDialogClickNewMessage(DialogInterface dialog, int id);
+
+        public void onCancel(DialogInterface dialog);
     }
 
     protected static MessageDialogListener listener;
@@ -43,6 +43,11 @@ public class MessageDialogFragment extends DialogFragment
         return fragmentDialog;
     }
 
+    public static List<Message> getMessages()
+    {
+        return messages;
+    }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
     {
@@ -57,7 +62,6 @@ public class MessageDialogFragment extends DialogFragment
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
-                Log.d(MainActivity.APP_TAG, "yes choosen " + which);
                 listener.onMessageDialogClick(dialog, which);
 
             }
@@ -66,16 +70,23 @@ public class MessageDialogFragment extends DialogFragment
             @Override
             public void onClick(DialogInterface dialog, int id)
             {
-                Log.d(MainActivity.APP_TAG, "new choosen " + id);
                 listener.onMessageDialogClickNewMessage(dialog, id);
             }
         });
 
         return builder.create();
     }
-    
+
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onCancel(DialogInterface dialog)
+    {
+        super.onCancel(dialog);
+        listener.onCancel(dialog);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState)
+    {
         super.onSaveInstanceState(outState);
         if (outState.isEmpty()) {
             outState.putBoolean("bug:fix", true);

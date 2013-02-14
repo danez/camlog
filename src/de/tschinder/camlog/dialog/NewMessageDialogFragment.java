@@ -7,12 +7,10 @@ import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import de.tschinder.camlog.R;
-import de.tschinder.camlog.activities.MainActivity;
 
 public class NewMessageDialogFragment extends DialogFragment
 {
@@ -21,6 +19,9 @@ public class NewMessageDialogFragment extends DialogFragment
         public void onNewMessageDialogCreate(DialogInterface dialog, int id, String message);
 
         public void onNewMessageDialogAbort(DialogInterface dialog, int id);
+
+
+        public void onCancel(DialogInterface dialog);
     }
 
     protected static NewMessageDialogListener listener;
@@ -55,28 +56,25 @@ public class NewMessageDialogFragment extends DialogFragment
         builder.setView(view);
         builder.setTitle(R.string.dialog_new_message_title);
         final EditText newMessageInput = (EditText) view.findViewById(R.id.editTextNewMessage);
-        
-        
-        builder.setPositiveButton("create", new OnClickListener() {
+
+        builder.setPositiveButton(R.string.dialog_new_message_button_create, new OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int id)
             {
-                Log.d(MainActivity.APP_TAG, "create new choosen " + id);
-                if(newMessageInput.getText().length() >= 1) {
+                if (newMessageInput.getText().length() >= 1) {
                     listener.onNewMessageDialogCreate(dialog, id, newMessageInput.getText().toString());
                 }
             }
         });
 
         if (getArguments().getBoolean("abort_possible", false)) {
-            builder.setNegativeButton("abort", new OnClickListener() {
+            builder.setNegativeButton(R.string.dialog_new_message_button_back, new OnClickListener() {
 
                 @Override
                 public void onClick(DialogInterface dialog, int id)
                 {
-                    Log.d(MainActivity.APP_TAG, "no choosen " + id);
-                    dialog.cancel();
+                    listener.onNewMessageDialogAbort(dialog, id);
                 }
             });
         }
@@ -84,7 +82,15 @@ public class NewMessageDialogFragment extends DialogFragment
     }
     
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onCancel(DialogInterface dialog)
+    {
+        super.onCancel(dialog);
+        listener.onCancel(dialog);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState)
+    {
         super.onSaveInstanceState(outState);
         if (outState.isEmpty()) {
             outState.putBoolean("bug:fix", true);

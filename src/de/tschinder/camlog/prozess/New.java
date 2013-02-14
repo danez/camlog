@@ -5,7 +5,9 @@ import java.util.List;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.widget.Toast;
+import de.tschinder.camlog.activities.MainActivity;
 import de.tschinder.camlog.data.LogEntryType;
 import de.tschinder.camlog.database.dao.MessageDataSource;
 import de.tschinder.camlog.database.object.LogEntry;
@@ -13,6 +15,7 @@ import de.tschinder.camlog.database.object.Message;
 import de.tschinder.camlog.dialog.MessageDialogFragment;
 import de.tschinder.camlog.dialog.NewMessageDialogFragment;
 import de.tschinder.camlog.dialog.TypeDialogFragment;
+import de.tschinder.camlog.io.ImageStore;
 
 public class New implements TypeDialogFragment.TypeDialogListener, MessageDialogFragment.MessageDialogListener,
         NewMessageDialogFragment.NewMessageDialogListener
@@ -101,7 +104,16 @@ public class New implements TypeDialogFragment.TypeDialogListener, MessageDialog
     @Override
     public void onMessageDialogClick(DialogInterface dialog, int which)
     {
-        // TODO Auto-generated method stub
+        try {
+            Message message = MessageDialogFragment.getMessages().get(which);
+            message.incrementCount();
+            logEntry.setMessage(message);
+            saveLogEntry();
+        } catch (IndexOutOfBoundsException e) {
+            Toast.makeText(context, "Something went wrong, bug report?", Toast.LENGTH_LONG).show();
+            Log.e(MainActivity.APP_TAG, "Index out of bonund: " + which);
+            dialog.cancel();
+        }
 
     }
 
@@ -124,14 +136,33 @@ public class New implements TypeDialogFragment.TypeDialogListener, MessageDialog
     @Override
     public void onNewMessageDialogCreate(DialogInterface dialog, int id, String message)
     {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
-
+        Message messageObject = new Message(context);
+        messageObject.setCount(1);
+        messageObject.setType(logEntry.getType());
+        messageObject.setValue(message);
+        logEntry.setMessage(messageObject);
+        saveLogEntry();
+    }
+    
+    public void saveLogEntry()
+    {
+        logEntry.save();
+        logEntry = null;
+        dialogQueue = "";
     }
 
     @Override
     public void onNewMessageDialogAbort(DialogInterface dialog, int id)
     {
-        // TODO Auto-generated method stub
+        showDialogMessage();
     }
 
+    @Override
+    public void onCancel(DialogInterface dialog)
+    {
+        //remove the image
+        ImageStore.deleteImage(logEntry.getImage());
+        logEntry = null;
+        dialogQueue = "";
+    }
 }

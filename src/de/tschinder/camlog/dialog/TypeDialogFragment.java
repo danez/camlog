@@ -14,6 +14,8 @@ public class TypeDialogFragment extends DialogFragment
     public interface TypeDialogListener
     {
         public void onTypeDialogClick(DialogInterface dialog, int which);
+
+        public void onCancel(DialogInterface dialog);
     }
 
     protected static TypeDialogListener listener;
@@ -49,6 +51,14 @@ public class TypeDialogFragment extends DialogFragment
             }
         });
         return builder.create();
+    }
+    
+
+    @Override
+    public void onCancel(DialogInterface dialog)
+    {
+        super.onCancel(dialog);
+        listener.onCancel(dialog);
     }
     
     @Override

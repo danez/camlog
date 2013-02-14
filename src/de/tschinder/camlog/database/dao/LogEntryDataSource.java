@@ -6,40 +6,33 @@ import java.util.List;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import de.tschinder.camlog.activities.MainActivity;
 import de.tschinder.camlog.data.LogEntryType;
-import de.tschinder.camlog.database.helper.LogEntryHelper;
+import de.tschinder.camlog.database.Helper;
 import de.tschinder.camlog.database.object.LogEntry;
+import de.tschinder.camlog.database.table.LogEntryTable;
 
 public class LogEntryDataSource
 {
 
-    // Database fields
-    private SQLiteDatabase database;
-    private LogEntryHelper dbHelper;
+    private Helper dbHelper;
     private Context context;
     private MessageDataSource messageDataSource;
     private String[] allColumns = {
-            LogEntryHelper.COLUMN_ID,
-            LogEntryHelper.COLUMN_TYPE,
-            LogEntryHelper.COLUMN_MESSAGE,
-            LogEntryHelper.COLUMN_DATE,
-            LogEntryHelper.COLUMN_IMAGE
+            LogEntryTable.COLUMN_ID,
+            LogEntryTable.COLUMN_TYPE,
+            LogEntryTable.COLUMN_MESSAGE,
+            LogEntryTable.COLUMN_DATE,
+            LogEntryTable.COLUMN_IMAGE
     };
 
     public LogEntryDataSource(Context context)
     {
-        dbHelper = new LogEntryHelper(context);
+        dbHelper = Helper.getInstance(context);
         messageDataSource = new MessageDataSource(context);
         this.context = context;
-    }
-
-    public void open() throws SQLException
-    {
-        database = dbHelper.getWritableDatabase();
     }
 
     public void close()
@@ -47,18 +40,18 @@ public class LogEntryDataSource
         dbHelper.close();
     }
 
-    public LogEntry createLogEntry(String message, LogEntryType type, String image)
+    public synchronized LogEntry createLogEntry(String message, LogEntryType type, String image)
     {
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
         database.beginTransaction();
         ContentValues values = new ContentValues();
-        values.put(LogEntryHelper.COLUMN_TYPE, type.ordinal());
-        values.put(LogEntryHelper.COLUMN_MESSAGE, messageDataSource.findOrCreateMessage(message, type).getId());
-        values.put(LogEntryHelper.COLUMN_IMAGE, image);
-        long insertId = database.insert(LogEntryHelper.TABLE_NAME, null, values);
+        values.put(LogEntryTable.COLUMN_TYPE, type.ordinal());
+        values.put(LogEntryTable.COLUMN_MESSAGE, messageDataSource.findOrCreateMessage(message, type).getId());
+        values.put(LogEntryTable.COLUMN_IMAGE, image);
+        long insertId = database.insert(LogEntryTable.TABLE_NAME, null, values);
 
         database.setTransactionSuccessful();
         database.endTransaction();
-
         return findById(insertId);
     }
 
@@ -89,26 +82,31 @@ public class LogEntryDataSource
 
     public LogEntry findById(long id)
     {
-        Cursor cursor = database.query(LogEntryHelper.TABLE_NAME, allColumns, LogEntryHelper.COLUMN_ID + " = " + id,
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        Cursor cursor = database.query(LogEntryTable.TABLE_NAME, allColumns, LogEntryTable.COLUMN_ID + " = " + id,
                 null, null, null, null);
+
         cursor.moveToFirst();
         LogEntry logEntry = cursorToComment(cursor);
         cursor.close();
         return logEntry;
     }
 
-    public void deleteComment(LogEntry logEntry)
+    public synchronized void deleteComment(LogEntry logEntry)
     {
         long id = logEntry.getId();
         Log.i(MainActivity.APP_TAG, "Delete logEntry with id: " + id);
-        database.delete(LogEntryHelper.TABLE_NAME, LogEntryHelper.COLUMN_ID + " = " + id, null);
+
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        database.delete(LogEntryTable.TABLE_NAME, LogEntryTable.COLUMN_ID + " = " + id, null);
     }
 
     public List<LogEntry> getAllLogEntries()
     {
         List<LogEntry> logEntries = new ArrayList<LogEntry>();
 
-        Cursor cursor = database.query(LogEntryHelper.TABLE_NAME, allColumns, null, null, null, null, null);
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        Cursor cursor = database.query(LogEntryTable.TABLE_NAME, allColumns, null, null, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -133,22 +131,27 @@ public class LogEntryDataSource
         return logEntry;
     }
 
-    public void save(LogEntry logEntry)
+    public synchronized void save(LogEntry logEntry)
     {
-        database.beginTransaction();
-        logEntry.getMessage().save();
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        try {
+            database.beginTransaction();
+            logEntry.getMessage().save();
 
-        ContentValues values = new ContentValues();
-        values.put(LogEntryHelper.COLUMN_TYPE, logEntry.getType().ordinal());
-        values.put(LogEntryHelper.COLUMN_MESSAGE, logEntry.getMessage().getId());
-        values.put(LogEntryHelper.COLUMN_IMAGE, logEntry.getImage());
-        if (logEntry.getId() != 0) {
-            database.update(LogEntryHelper.TABLE_NAME, values, LogEntryHelper.COLUMN_ID + " = " + logEntry.getId(),
-                    null);
-        } else {
-            database.insert(LogEntryHelper.TABLE_NAME, null, values);
+            ContentValues values = new ContentValues();
+            values.put(LogEntryTable.COLUMN_TYPE, logEntry.getType().ordinal());
+            values.put(LogEntryTable.COLUMN_MESSAGE, logEntry.getMessage().getId());
+            values.put(LogEntryTable.COLUMN_IMAGE, logEntry.getImage());
+            if (logEntry.getId() != 0) {
+                database.update(LogEntryTable.TABLE_NAME, values, LogEntryTable.COLUMN_ID + " = " + logEntry.getId(),
+                        null);
+            } else {
+                long newId = database.insert(LogEntryTable.TABLE_NAME, null, values);
+                logEntry.setId(newId);
+            }
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
         }
-        database.setTransactionSuccessful();
-        database.endTransaction();
     }
 }

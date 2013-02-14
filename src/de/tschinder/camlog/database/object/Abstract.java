@@ -4,7 +4,7 @@ import android.content.Context;
 
 public class Abstract
 {
-    private int id;
+    private long id;
     protected Context context;
 
     public Abstract(Context context)
@@ -12,12 +12,12 @@ public class Abstract
         this.context = context;
     }
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId(int id)
+    public void setId(long id)
     {
         this.id = id;
     }

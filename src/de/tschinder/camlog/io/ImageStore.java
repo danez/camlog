@@ -25,4 +25,9 @@ public class ImageStore
     {
         return new File(EXT_IMAGE_DIR).mkdirs();
     }
+    
+    public static boolean deleteImage(String pathToFile)
+    {
+        return new File(pathToFile).delete();
+    }
 }

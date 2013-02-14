@@ -13,5 +13,7 @@
     <string name="dialog_choose_type_work">Home/Work</string>
     <string name="dialog_new_message_title">Create new message</string>
     <string name="dialog_new_message_text_hint">Enter message</string>
+    <string name="dialog_new_message_button_back">Back</string>
+    <string name="dialog_new_message_button_create">Create</string>
 
 </resources>
