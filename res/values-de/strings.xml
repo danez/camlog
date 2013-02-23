@@ -2,18 +2,26 @@
 <resources>
 
     <string name="app_name">CamLog</string>
-    <string name="title_start_fragment">StartDE</string>
-    <string name="title_history_fragment">Logs</string>
+    
+    <string name="tab_title_all">Alle</string>
+    <string name="tab_title_private">Privat</string>
+    <string name="tab_title_business">Dienstlich</string>
+    <string name="tab_title_work">Büro/Wohnung</string>
+    
+    <string name="menu_new">Neuer Eintrag</string>
     <string name="menu_settings">Einstellungen</string>
     <string name="menu_about">Über</string>
-    <string name="button_new_log_entry">Neuer Eintrag</string>
+    
     <string name="dialog_choose_type_title">Typ auswählen</string>
     <string name="dialog_choose_type_private">Privat</string>
     <string name="dialog_choose_type_business">Dienstlich</string>
     <string name="dialog_choose_type_work">Wohnung/Betrieb</string>
+    
     <string name="dialog_new_message_title">Neue Nachricht erstellen</string>
     <string name="dialog_new_message_text_hint">Nachricht eingeben</string>
     <string name="dialog_new_message_button_back">Zurück</string>
     <string name="dialog_new_message_button_create">Erstellen</string>
+    
+    <string name="history_list_item_image_description">Image</string>
 
 </resources>

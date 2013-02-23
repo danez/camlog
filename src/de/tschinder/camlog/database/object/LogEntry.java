@@ -64,7 +64,7 @@ public class LogEntry extends Abstract
     @Override
     public String toString()
     {
-        return message.toString();
+        return this.date + " : " + message.getValue();
     }
 
     public void save()

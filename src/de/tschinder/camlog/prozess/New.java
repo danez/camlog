@@ -26,11 +26,6 @@ public class New implements TypeDialogFragment.TypeDialogListener, MessageDialog
 
     private String dialogQueue;
 
-    public New(FragmentActivity context)
-    {
-        this.context = context;
-    }
-
     private void init()
     {
         logEntry = new LogEntry(context);
@@ -143,12 +138,13 @@ public class New implements TypeDialogFragment.TypeDialogListener, MessageDialog
         logEntry.setMessage(messageObject);
         saveLogEntry();
     }
-    
+
     public void saveLogEntry()
     {
         logEntry.save();
         logEntry = null;
         dialogQueue = "";
+        ((MainActivity) context).refreshTabs();
     }
 
     @Override
@@ -160,7 +156,7 @@ public class New implements TypeDialogFragment.TypeDialogListener, MessageDialog
     @Override
     public void onCancel(DialogInterface dialog)
     {
-        //remove the image
+        // remove the image
         ImageStore.deleteImage(logEntry.getImage());
         logEntry = null;
         dialogQueue = "";

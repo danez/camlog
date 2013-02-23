@@ -103,11 +103,24 @@ public class LogEntryDataSource
 
     public List<LogEntry> getAllLogEntries()
     {
-        List<LogEntry> logEntries = new ArrayList<LogEntry>();
-
         SQLiteDatabase database = dbHelper.getWritableDatabase();
-        Cursor cursor = database.query(LogEntryTable.TABLE_NAME, allColumns, null, null, null, null, null);
+        Cursor cursor = database.query(LogEntryTable.TABLE_NAME, allColumns, null, null, null, null, LogEntryTable.COLUMN_DATE + " DESC");
 
+        return cursorToList(cursor);
+    }
+    
+    public List<LogEntry> getAllLogEntriesForType(LogEntryType type)
+    {
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        Cursor cursor = database.query(LogEntryTable.TABLE_NAME, allColumns, LogEntryTable.COLUMN_TYPE + "=" + type.ordinal(), null, null, null, LogEntryTable.COLUMN_DATE + " DESC");
+
+        return cursorToList(cursor);
+    }
+    
+
+    private List<LogEntry> cursorToList(Cursor cursor)
+    {
+        List<LogEntry> logEntries = new ArrayList<LogEntry>();
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             LogEntry logEntry = cursorToComment(cursor);
@@ -116,6 +129,7 @@ public class LogEntryDataSource
         }
         // Make sure to close the cursor
         cursor.close();
+
         return logEntries;
     }
 

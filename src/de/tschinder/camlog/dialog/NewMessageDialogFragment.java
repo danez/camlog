@@ -87,13 +87,4 @@ public class NewMessageDialogFragment extends DialogFragment
         super.onCancel(dialog);
         listener.onCancel(dialog);
     }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState)
-    {
-        super.onSaveInstanceState(outState);
-        if (outState.isEmpty()) {
-            outState.putBoolean("bug:fix", true);
-        }
-    }
 }
