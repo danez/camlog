@@ -46,7 +46,12 @@ public class MainActivity extends FragmentActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-
+        initTabs();
+    }    
+    
+    public void initTabs()
+    {
+        tabListener.clear();
         ActionBar actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setDisplayShowTitleEnabled(false);
@@ -103,6 +108,10 @@ public class MainActivity extends FragmentActivity
                 // app icon in action bar clicked; go home
                 startImageCapture();
                 return true;
+            case R.id.menu_settings:
+                // app icon in action bar clicked; go home
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -150,6 +159,7 @@ public class MainActivity extends FragmentActivity
     public void onResume()
     {
         super.onResume();
+        refreshTabs();
         if (newObject != null) {
             newObject.setActivity(this);
         }

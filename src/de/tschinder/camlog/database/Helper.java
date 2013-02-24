@@ -13,8 +13,8 @@ import de.tschinder.camlog.interfaces.TableInterface;
 public class Helper extends SQLiteOpenHelper
 {
 
-    private static final int DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME = "camlog";
+    public static final int DATABASE_VERSION = 1;
+    public static final String DATABASE_NAME = "camlog";
 
     private static Helper instance;
 

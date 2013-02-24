@@ -1,22 +1,17 @@
 package de.tschinder.camlog.data;
 
-import java.io.FileInputStream;
 import java.util.List;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 import de.tschinder.camlog.R;
 import de.tschinder.camlog.database.object.LogEntry;
 
-public class LogEntryAdapter extends ArrayAdapter<LogEntry>
+public class LogEntryAdapter extends BaseAdapter
 {
 
     private List<LogEntry> items;
@@ -24,7 +19,6 @@ public class LogEntryAdapter extends ArrayAdapter<LogEntry>
 
     public LogEntryAdapter(Context context, int textViewResourceId, List<LogEntry> items)
     {
-        super(context, textViewResourceId, items);
         this.items = items;
         this.context = context;
     }
@@ -45,7 +39,7 @@ public class LogEntryAdapter extends ArrayAdapter<LogEntry>
             LayoutInflater vi = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = vi.inflate(R.layout.history_list_item, null);
         }
-        LogEntry logEntry = items.get(position);
+        LogEntry logEntry = getItem(position);
         if (logEntry != null) {
             TextView tt = (TextView) v.findViewById(R.id.history_item_description);
             TextView bt = (TextView) v.findViewById(R.id.history_item_date);
@@ -62,25 +56,43 @@ public class LogEntryAdapter extends ArrayAdapter<LogEntry>
         }
         return v;
     }
-    
-    
 
-    private Bitmap getThumbnail(String fileName)
+    @Override
+    public int getCount()
     {
-        try     
-        {
-
-            final int THUMBNAIL_SIZE = 128;
-
-            FileInputStream fis = new FileInputStream(Uri.parse(fileName).getPath());
-            Bitmap imageBitmap = BitmapFactory.decodeStream(fis);
-
-            return Bitmap.createScaledBitmap(imageBitmap, THUMBNAIL_SIZE, THUMBNAIL_SIZE, false);
-        }
-        catch(Exception ex) {
-                Toast.makeText(context, ex.getMessage(), Toast.LENGTH_LONG).show();
-        }
-        return null;
+        return items.size();
     }
+
+    @Override
+    public LogEntry getItem(int position)
+    {
+        return items.get(position);
+    }
+
+    @Override
+    public long getItemId(int position)
+    {
+        return position;
+    }
+    
+    
+//
+//    private Bitmap getThumbnail(String fileName)
+//    {
+//        try     
+//        {
+//
+//            final int THUMBNAIL_SIZE = 128;
+//
+//            FileInputStream fis = new FileInputStream(Uri.parse(fileName).getPath());
+//            Bitmap imageBitmap = BitmapFactory.decodeStream(fis);
+//
+//            return Bitmap.createScaledBitmap(imageBitmap, THUMBNAIL_SIZE, THUMBNAIL_SIZE, false);
+//        }
+//        catch(Exception ex) {
+//                Toast.makeText(context, ex.getMessage(), Toast.LENGTH_LONG).show();
+//        }
+//        return null;
+//    }
 
 }
