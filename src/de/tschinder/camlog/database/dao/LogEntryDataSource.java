@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import de.tschinder.camlog.activities.MainActivity;
+import de.tschinder.camlog.core.DateFormater;
 import de.tschinder.camlog.data.LogEntryType;
 import de.tschinder.camlog.database.Helper;
 import de.tschinder.camlog.database.object.LogEntry;
@@ -139,7 +140,7 @@ public class LogEntryDataSource
         logEntry.setId(cursor.getInt(0));
         logEntry.setType(cursor.getInt(1));
         logEntry.setMessage(messageDataSource.findById(cursor.getInt(2)));
-        logEntry.setDate(cursor.getString(3));
+        logEntry.setDate(DateFormater.formatDateTime(context, cursor.getString(3)));
         logEntry.setImage(cursor.getString(4));
 
         return logEntry;

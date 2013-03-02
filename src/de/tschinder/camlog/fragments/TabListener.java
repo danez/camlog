@@ -42,7 +42,7 @@ public class TabListener<T extends Fragment> implements ActionBar.TabListener
         if (mFragment == null) {
             // If not, instantiate and add it to the activity
             mFragment = (ListFragment) Fragment.instantiate(mActivity, mClass.getName());
-            xaction.add(android.R.id.content, mFragment, mClass.getName());
+            xaction.replace(android.R.id.content, mFragment, mClass.getName());
         } else {
             // If it exists, simply attach it in order to show it
             xaction.attach(mFragment);
