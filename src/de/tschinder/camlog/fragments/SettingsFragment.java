@@ -5,14 +5,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.Date;
 
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
+import android.text.format.DateFormat;
 import android.widget.Toast;
 import de.tschinder.camlog.R;
+import de.tschinder.camlog.core.DateFormater;
 import de.tschinder.camlog.database.Helper;
 
 public class SettingsFragment extends PreferenceFragment
@@ -23,7 +26,18 @@ public class SettingsFragment extends PreferenceFragment
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
         initPreferences();
-
+        updateBackupTimestamp();
+    }
+    
+    private void updateBackupTimestamp()
+    {
+        getActivity().runOnUiThread(new Runnable() {
+            public void run()
+            {
+                Preference backup = (Preference) findPreference("pref_key_backup_now");
+                backup.setSummary(getActivity().getString(R.string.pref_backup_now_summary) + " " + getDateLastBackup());
+            }
+        });
     }
 
     // Fragment
@@ -37,6 +51,7 @@ public class SettingsFragment extends PreferenceFragment
                     public void run()
                     {
                         createBackup();
+                        updateBackupTimestamp();
                     }
                 }).start();
 
@@ -59,6 +74,18 @@ public class SettingsFragment extends PreferenceFragment
         });
     }
 
+    protected String getDateLastBackup()
+    {
+        File backup = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/camlog/db.backup");
+        
+        if(!backup.exists()) {
+            return "never";
+        }
+        
+        Date date = new Date(backup.lastModified());
+        return DateFormater.formatLocalDateTime(getActivity(), date);
+    }
+    
     protected void createBackup()
     {
         File target = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/camlog/db.backup");

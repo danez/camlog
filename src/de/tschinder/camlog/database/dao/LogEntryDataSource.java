@@ -140,7 +140,7 @@ public class LogEntryDataSource
         logEntry.setId(cursor.getInt(0));
         logEntry.setType(cursor.getInt(1));
         logEntry.setMessage(messageDataSource.findById(cursor.getInt(2)));
-        logEntry.setDate(DateFormater.formatDateTime(context, cursor.getString(3)));
+        logEntry.setDate(DateFormater.formatUTCDateTime(context, cursor.getString(3)));
         logEntry.setImage(cursor.getString(4));
 
         return logEntry;

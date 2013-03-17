@@ -43,16 +43,12 @@ public class LogEntryAdapter extends BaseAdapter
         if (logEntry != null) {
             TextView tt = (TextView) v.findViewById(R.id.history_item_description);
             TextView bt = (TextView) v.findViewById(R.id.history_item_date);
-            //ImageView image = (ImageView) v.findViewById(R.id.history_item_image);
             if (tt != null) {
                 tt.setText(logEntry.getMessage().getValue());
             }
             if (bt != null) {
                 bt.setText(logEntry.getDate());
             }
-            //if (image != null) {
-            //    image.setImageBitmap(getThumbnail(logEntry.getImage()));
-           // }
         }
         return v;
     }
