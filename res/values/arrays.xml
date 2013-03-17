@@ -6,5 +6,12 @@
         <item>@string/dialog_choose_type_business</item>
         <item>@string/dialog_choose_type_work</item>
     </string-array>
+    
+    <string-array name="action_bar_types">
+        <item>@string/tab_title_all</item>
+        <item>@string/tab_title_private</item>
+        <item>@string/tab_title_business</item>
+        <item>@string/tab_title_work</item>
+    </string-array>
 
 </resources>

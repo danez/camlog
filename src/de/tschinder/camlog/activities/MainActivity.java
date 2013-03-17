@@ -1,32 +1,35 @@
 package de.tschinder.camlog.activities;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.app.ActionBar;
-import android.app.ActionBar.Tab;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import de.tschinder.camlog.R;
+import de.tschinder.camlog.data.LogEntryAdapter;
+import de.tschinder.camlog.data.LogEntryType;
 import de.tschinder.camlog.database.Helper;
-import de.tschinder.camlog.fragments.ListAllFragment;
-import de.tschinder.camlog.fragments.ListBusinessFragment;
-import de.tschinder.camlog.fragments.ListPrivateFragment;
-import de.tschinder.camlog.fragments.ListWorkFragment;
-import de.tschinder.camlog.fragments.TabListener;
+import de.tschinder.camlog.database.dao.LogEntryDataSource;
+import de.tschinder.camlog.database.object.LogEntry;
+import de.tschinder.camlog.fragments.ListEntriesFragment;
 import de.tschinder.camlog.io.ImageStore;
 import de.tschinder.camlog.prozess.New;
 
-public class MainActivity extends FragmentActivity
+public class MainActivity extends FragmentActivity implements ActionBar.OnNavigationListener
 {
 
     public static final String APP_TAG = "CamLog";
@@ -34,8 +37,10 @@ public class MainActivity extends FragmentActivity
 
     private Uri fileUri;
     private static New newObject;
-
-    private ArrayList<TabListener<? extends ListFragment>> tabListener = new ArrayList<TabListener<? extends ListFragment>>();
+    
+    private ListFragment mFragment;
+    
+    protected static int currentFilterPosition = -1;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -46,43 +51,62 @@ public class MainActivity extends FragmentActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        initTabs();
-    }    
-    
-    public void initTabs()
-    {
-        tabListener.clear();
+        
         ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
         actionBar.setDisplayShowTitleEnabled(false);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.action_bar_types, android.R.layout.simple_spinner_dropdown_item);        
+        actionBar.setListNavigationCallbacks(adapter, this);
+        
+        if(currentFilterPosition > 0) {
+            actionBar.setSelectedNavigationItem(currentFilterPosition);
+        }
+        
+        initFragment();
+    }
+    
+    protected void initFragment()
+    {
+        FragmentManager fragMgr = getSupportFragmentManager();
+        FragmentTransaction xaction = fragMgr.beginTransaction();
 
-        TabListener<ListAllFragment> tabListener1 = new TabListener<ListAllFragment>(this, ListAllFragment.class);
-        Tab tab1 = actionBar.newTab().setText(R.string.tab_title_all).setTabListener(tabListener1);
-        actionBar.addTab(tab1);
-        tabListener.add(tabListener1);
+        mFragment = (ListFragment) Fragment.instantiate(this, ListEntriesFragment.class.getName());
+        xaction.replace(android.R.id.content, mFragment, ListEntriesFragment.class.getName());
+        xaction.commit();
+    }
 
-        TabListener<ListPrivateFragment> tabListener2 = new TabListener<ListPrivateFragment>(this,
-                ListPrivateFragment.class);
-        Tab tab2 = actionBar.newTab().setText(R.string.tab_title_private).setTabListener(tabListener2);
-        actionBar.addTab(tab2);
-        tabListener.add(tabListener2);
-
-        TabListener<ListBusinessFragment> tabListener3 = new TabListener<ListBusinessFragment>(this,
-                ListBusinessFragment.class);
-        Tab tab3 = actionBar.newTab().setText(R.string.tab_title_business).setTabListener(tabListener3);
-        actionBar.addTab(tab3);
-        tabListener.add(tabListener3);
-
-        TabListener<ListWorkFragment> tabListener4 = new TabListener<ListWorkFragment>(this, ListWorkFragment.class);
-        Tab tab4 = actionBar.newTab().setText(R.string.tab_title_work).setTabListener(tabListener4);
-        actionBar.addTab(tab4);
-        tabListener.add(tabListener4);
+    @Override
+    public boolean onNavigationItemSelected(int itemPosition, long itemId)
+    {
+        currentFilterPosition = itemPosition;
+        if (mFragment != null) {
+            LogEntryAdapter adapter = (LogEntryAdapter) mFragment.getListAdapter();
+            adapter.notifyDataSetChanged();
+            return true;
+        }
+        return false;
+    }
+    
+    public List<LogEntry> getEntriesForCurrentSelection()
+    {
+        final LogEntryDataSource datasource = new LogEntryDataSource(this);
+        switch (currentFilterPosition) {
+            case 1: // private
+                return datasource.getAllLogEntriesForType(LogEntryType.PRIVATE);
+            case 2: // business
+                return datasource.getAllLogEntriesForType(LogEntryType.BUSINESS);
+            case 3: // work
+                return datasource.getAllLogEntriesForType(LogEntryType.WORK);
+            default:
+                return datasource.getAllLogEntries();
+        }
     }
 
     public void refreshTabs()
     {
-        for (TabListener<? extends ListFragment> tabListener : this.tabListener) {
-            tabListener.refreshTab();
+        if (mFragment != null) {
+            LogEntryAdapter adapter = (LogEntryAdapter) mFragment.getListAdapter();
+            adapter.notifyDataSetChanged();
         }
     }
 
@@ -159,7 +183,6 @@ public class MainActivity extends FragmentActivity
     public void onResume()
     {
         super.onResume();
-        refreshTabs();
         if (newObject != null) {
             newObject.setActivity(this);
         }
