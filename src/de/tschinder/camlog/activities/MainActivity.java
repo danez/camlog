@@ -4,7 +4,10 @@ import java.util.List;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -13,6 +16,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
@@ -32,6 +36,7 @@ import de.tschinder.camlog.prozess.New;
 public class MainActivity extends FragmentActivity implements ActionBar.OnNavigationListener
 {
 
+    public static final String EVENT_REFRESH_LIST = "event_refresh_list";
     public static final String APP_TAG = "CamLog";
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 42;
 
@@ -63,7 +68,17 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
         }
         
         initFragment();
+        
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
+                new IntentFilter(EVENT_REFRESH_LIST));
     }
+    
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+          refreshList();
+        }
+      };
     
     protected void initFragment()
     {
@@ -102,7 +117,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
         }
     }
 
-    public void refreshTabs()
+    private void refreshList()
     {
         if (mFragment != null) {
             LogEntryAdapter adapter = (LogEntryAdapter) mFragment.getListAdapter();
@@ -196,5 +211,12 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
         }
         Helper.getInstance(getApplicationContext()).close();
         super.onPause();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        super.onDestroy();
     }
 }

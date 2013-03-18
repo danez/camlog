@@ -3,8 +3,10 @@ package de.tschinder.camlog.prozess;
 import java.util.List;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 import de.tschinder.camlog.activities.MainActivity;
@@ -144,7 +146,8 @@ public class New implements TypeDialogFragment.TypeDialogListener, MessageDialog
         logEntry.save();
         logEntry = null;
         dialogQueue = "";
-        ((MainActivity) context).refreshTabs();
+        Intent intent = new Intent(MainActivity.EVENT_REFRESH_LIST);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
     @Override

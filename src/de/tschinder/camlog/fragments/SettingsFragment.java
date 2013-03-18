@@ -7,14 +7,16 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.Date;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceFragment;
-import android.text.format.DateFormat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
 import de.tschinder.camlog.R;
+import de.tschinder.camlog.activities.MainActivity;
 import de.tschinder.camlog.core.DateFormater;
 import de.tschinder.camlog.database.Helper;
 
@@ -67,6 +69,8 @@ public class SettingsFragment extends PreferenceFragment
                     public void run()
                     {
                         restoreBackup();
+                        Intent intent = new Intent(MainActivity.EVENT_REFRESH_LIST);
+                        LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
                     }
                 }).start();
                 return true;
