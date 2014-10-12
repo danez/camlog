@@ -99,11 +99,15 @@ public class SettingsFragment extends PreferenceFragment
 
         if (source.exists()) {
             try {
-                FileChannel src = new FileInputStream(source).getChannel();
-                FileChannel dst = new FileOutputStream(target).getChannel();
+                FileInputStream srcStream = new FileInputStream(source);
+                FileChannel src = srcStream.getChannel();
+                FileOutputStream dstStream = new FileOutputStream(target);
+                FileChannel dst = dstStream.getChannel();
                 dst.transferFrom(src, 0, src.size());
                 src.close();
+                srcStream.close();
                 dst.close();
+                dstStream.close();
                 makeToast(R.string.backup_finished, Toast.LENGTH_LONG);
             } catch (IOException ex) {
                 makeToast(R.string.backup_failed, Toast.LENGTH_LONG);
@@ -128,11 +132,15 @@ public class SettingsFragment extends PreferenceFragment
 
         if (source.exists()) {
             try {
-                FileChannel src = new FileInputStream(source).getChannel();
-                FileChannel dst = new FileOutputStream(target).getChannel();
+                FileInputStream srcStream = new FileInputStream(source);
+                FileChannel src = srcStream.getChannel();
+                FileOutputStream dstStream = new FileOutputStream(target);
+                FileChannel dst = dstStream.getChannel();
                 dst.transferFrom(src, 0, src.size());
                 src.close();
+                srcStream.close();
                 dst.close();
+                dstStream.close();
                 makeToast(R.string.restore_finished, Toast.LENGTH_LONG);
             } catch (IOException ex) {
                 makeToast(R.string.restore_failed, Toast.LENGTH_LONG);
